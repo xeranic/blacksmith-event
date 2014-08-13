@@ -10,8 +10,8 @@ What's wrong with Java Observer?
 [TODO]
 
 
-How to use EventSource?
------------------------
+Basic Event/Listener/EventSource
+--------------------------------
 
 ```java
 // define your own event handling interface, don't need to extends from other interface
