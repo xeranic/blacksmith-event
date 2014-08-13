@@ -7,17 +7,17 @@ import java.util.List;
 public final class EventSource<E extends Event<L>, L> {
 
     public static final int PRIORITY_LOWEST = 100;
-    
+
     public static final int PRIORITY_LOWER = 200;
-    
+
     public static final int PRIORITY_LOW = 300;
-    
+
     public static final int PRIORITY_NORMAL = 400;
-    
+
     public static final int PRIORITY_HIGH = 500;
-    
+
     public static final int PRIORITY_HIGHER = 600;
-    
+
     public static final int PRIORITY_HIGHEST = 700;
 
     private static class Item<L> {
@@ -41,10 +41,11 @@ public final class EventSource<E extends Event<L>, L> {
         if (items == null) {
             items = new ArrayList<>();
         }
+        assert (listenerDoesNotExist(listener));
         int index = items.size();
         for (int i = 0, len = items.size(); i < len; i++) {
             Item<L> item = items.get(i);
-            if (item.priority > priority) {
+            if (item.priority < priority) {
                 index = i;
                 break;
             }
@@ -57,6 +58,16 @@ public final class EventSource<E extends Event<L>, L> {
         return new ListenerRegistration<L>(this, listener);
     }
 
+    private boolean listenerDoesNotExist(L listener) {
+        for (int i = 0, len = items.size(); i < len; i++) {
+            Item<L> item = items.get(i);
+            if (item.listener == listener) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public ListenerRegistration<L> on(L listener) {
         return addListener(listener);
     }
@@ -66,6 +77,9 @@ public final class EventSource<E extends Event<L>, L> {
     }
 
     public synchronized boolean removeListener(L listener) {
+        if (items == null) {
+            return false;
+        }
         for (int i = 0, len = items.size(); i < len; i++) {
             Item<L> item = items.get(i);
             if (item.listener == listener) {
@@ -77,10 +91,15 @@ public final class EventSource<E extends Event<L>, L> {
     }
 
     public synchronized void removeAllListeners() {
-        items.clear();
+        if (items != null) {
+            items.clear();
+        }
     }
 
     public synchronized void fire(E event) {
+        if (items == null) {
+            return;
+        }
         Iterator<Item<L>> iter = items.iterator();
         while (iter.hasNext()) {
             Item<L> item = iter.next();
