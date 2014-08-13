@@ -82,4 +82,18 @@ public class EventSourceTest {
         order.verify(listenerL).changed(what);
 	}
 	
+	@Test
+	public void testRemove() {
+	    ChangedListener listener = mock(ChangedListener.class);
+        ListenerRegistration<ChangedListener> reg = eventSource.on(listener);
+
+        eventSource.fire(new Changed("1"));
+        verify(listener).changed("1");
+        
+        reg.removeListener();
+        
+        eventSource.fire(new Changed("2"));
+        verify(listener, never()).changed("2");
+	}
+	
 }
