@@ -20,13 +20,24 @@ public final class EventSource<E extends Event<L>, L> {
 
     public static final int PRIORITY_HIGHEST = 700;
 
+    private static final int DEFAULT_LIMIT = 10;
+
     private static class Item<L> {
         private int priority;
         private boolean once;
         private L listener;
     }
 
+    private final int limit;
     private List<Item<L>> items;
+    
+    public EventSource() {
+        this(DEFAULT_LIMIT);
+    }
+    
+    public EventSource(int limit) {
+        this.limit = limit;
+    }
 
     public ListenerRegistration<L> addListener(L listener) {
         return addListener(listener, false);
@@ -42,6 +53,9 @@ public final class EventSource<E extends Event<L>, L> {
             items = new ArrayList<>();
         }
         assert (listenerDoesNotExist(listener));
+        if (limit > 0 && items.size() >= limit) {
+            throw new RuntimeException("too many listeners, need a bigger limit");
+        }
         int index = items.size();
         for (int i = 0, len = items.size(); i < len; i++) {
             Item<L> item = items.get(i);
